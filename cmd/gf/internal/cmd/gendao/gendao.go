@@ -128,6 +128,18 @@ var (
 		"smallmoney": {
 			Type: "float64",
 		},
+		"bigint": {
+			Type: "int64",
+		},
+		"int": {
+			Type: "int",
+		},
+		"varchar": {
+			Type: "string",
+		},
+		"tinyint": {
+			Type: "bool",
+		},
 	}
 )
 
