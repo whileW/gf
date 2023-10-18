@@ -11,6 +11,9 @@ import (
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/text/gregex"
 	"github.com/gogf/gf/v2/text/gstr"
+	"go/ast"
+	"go/parser"
+	"go/token"
 )
 
 func (c CGenCtrl) getApiItemsInSrc(apiModuleFolderPath string) (items []apiItem, err error) {
@@ -38,28 +41,56 @@ func (c CGenCtrl) getApiItemsInSrc(apiModuleFolderPath string) (items []apiItem,
 				continue
 			}
 			fileContent = gfile.GetContents(apiFileFolderPath)
-			matches, err := gregex.MatchAllString(PatternApiDefinition, fileContent)
+
+			fset := token.NewFileSet()
+			astf, err := parser.ParseFile(fset, "", fileContent, 0)
 			if err != nil {
 				return nil, err
 			}
-			for _, match := range matches {
-				var (
-					methodName = match[1]
-					structBody = match[2]
-				)
-				// ignore struct name that match a request, but has no g.Meta in its body.
-				if !gstr.Contains(structBody, `g.Meta`) {
-					continue
+			ast.Inspect(astf, func(n ast.Node) bool {
+				if v, ok := n.(*ast.TypeSpec); ok {
+					if !gstr.Contains(v.Name.Name, "Req") {
+						return false
+					}
+
+					if _, ok := v.Type.(*ast.StructType); !ok {
+						return false
+					}
+					item := apiItem{
+						Import:     gstr.Trim(importPath, `"`),
+						FileName:   gfile.Name(apiFileFolderPath),
+						Module:     gfile.Basename(apiModuleFolderPath),
+						Version:    gfile.Basename(apiVersionFolderPath),
+						MethodName: gstr.Replace(v.Name.Name, "Req", ""),
+					}
+					items = append(items, item)
+					return false
 				}
-				item := apiItem{
-					Import:     gstr.Trim(importPath, `"`),
-					FileName:   gfile.Name(apiFileFolderPath),
-					Module:     gfile.Basename(apiModuleFolderPath),
-					Version:    gfile.Basename(apiVersionFolderPath),
-					MethodName: methodName,
-				}
-				items = append(items, item)
-			}
+				return true
+			})
+
+			//matches, err := gregex.MatchAllString(PatternApiDefinition, fileContent)
+			//if err != nil {
+			//	return nil, err
+			//}
+			//for _, match := range matches {
+			//	var (
+			//		methodName = match[1]
+			//		structBody = match[2]
+			//	)
+			//	// ignore struct name that match a request, but has no g.Meta in its body.
+			//	if !gstr.Contains(structBody, `g.Meta`) {
+			//		continue
+			//	}
+			//	item := apiItem{
+			//		Import:     gstr.Trim(importPath, `"`),
+			//		FileName:   gfile.Name(apiFileFolderPath),
+			//		Module:     gfile.Basename(apiModuleFolderPath),
+			//		Version:    gfile.Basename(apiVersionFolderPath),
+			//		MethodName: methodName,
+			//	}
+			//	items = append(items, item)
+			//}
 		}
 	}
 	return
