@@ -30,7 +30,6 @@ func generateLogic(ctx context.Context, in CGenDaoInternalInput) {
 			dirPathModel:         dirPathModel,
 		})
 	}
-	exec.Command("gf", "gen", "service").Run()
 }
 
 type generateLogicSingleInput struct {
@@ -113,6 +112,7 @@ func generateLogicIndex(in generateLogicIndexInput) {
 			utils.GoFmt(path)
 			mlog.Print("generated:", path)
 		}
+		exec.Command("gf", "gen", "service", "-w", path).Run()
 	}
 }
 func generateLogicModelIndex(ctx context.Context, in generateLogicIndexInput) {
