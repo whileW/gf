@@ -12,6 +12,7 @@ import (
 	"github.com/gogf/gf/v2/os/gfile"
 	"github.com/gogf/gf/v2/text/gstr"
 	"github.com/olekukonko/tablewriter"
+	"os/exec"
 	"strings"
 )
 
@@ -29,6 +30,7 @@ func generateLogic(ctx context.Context, in CGenDaoInternalInput) {
 			dirPathModel:         dirPathModel,
 		})
 	}
+	exec.Command("gf", "gen", "service").Run()
 }
 
 type generateLogicSingleInput struct {
