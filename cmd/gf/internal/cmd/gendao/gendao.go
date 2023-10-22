@@ -111,6 +111,10 @@ generated json tag case for model struct, cases are as follows:
 	tplVarGroupName               = `{TplGroupName}`
 	tplVarDatetimeStr             = `{TplDatetimeStr}`
 	tplVarCreatedAtDatetimeStr    = `{TplCreatedAtDatetimeStr}`
+
+	tplVarColumnCreate          = `{TplColumnCreate}`
+	tplVarPageListSearch        = `{TplPageListSearch}`
+	tplVarBaseModelImportPrefix = `{TplBaseModelImportPrefix}`
 )
 
 var (
@@ -336,6 +340,14 @@ func doGenDaoForArray(ctx context.Context, index int, in CGenDaoInput) {
 	})
 	// Entity.
 	generateEntity(ctx, CGenDaoInternalInput{
+		CGenDaoInput:  in,
+		DB:            db,
+		TableNames:    tableNames,
+		NewTableNames: newTableNames,
+	})
+
+	// Logic
+	generateLogic(ctx, CGenDaoInternalInput{
 		CGenDaoInput:  in,
 		DB:            db,
 		TableNames:    tableNames,

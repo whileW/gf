@@ -112,3 +112,110 @@ func (dao *{TplTableNameCamelCase}Dao) Transaction(ctx context.Context, f func(c
 	return dao.Ctx(ctx).Transaction(ctx, f)
 }
 `
+
+const TemplateGenLogicIndexContent = `
+package {TplTableName}
+
+import (
+	"context"
+	"{TplImportPrefix}/dao"
+	"{TplImportPrefix}/model"
+	"{TplImportPrefix}/model/do"
+	"{TplImportPrefix}/model/entity"
+	"{TplImportPrefix}/service"
+)
+
+type s{TplTableNameCamelCase} struct {}
+
+func init() {
+	service.Register{TplTableNameCamelCase}(New())
+}
+
+func New() service.I{TplTableNameCamelCase} {
+	return &s{TplTableNameCamelCase}{}
+}
+
+// Create 创建
+func (s *s{TplTableNameCamelCase}) Create(ctx context.Context, in *model.Create{TplTableNameCamelCase}In) error {
+	_, err := dao.{TplTableNameCamelCase}.Ctx(ctx).Data(do.{TplTableNameCamelCase}{
+		{TplColumnCreate}
+	}).Insert()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Edit 编辑
+func (s *s{TplTableNameCamelCase}) Edit(ctx context.Context, in *model.Edit{TplTableNameCamelCase}In) error {
+	_, err := dao.{TplTableNameCamelCase}.Ctx(ctx).Data(do.{TplTableNameCamelCase}{
+		{TplColumnCreate}
+	}).WherePri(in.Id).Update()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Del 删除
+func (s *s{TplTableNameCamelCase}) Del(ctx context.Context, in *model.{TplTableNameCamelCase}IdIn) error {
+	_, err := dao.{TplTableNameCamelCase}.Ctx(ctx).WherePri(in.Id).Delete()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Info 详情
+func (s *s{TplTableNameCamelCase}) Info(ctx context.Context, in *model.{TplTableNameCamelCase}IdIn) (*entity.{TplTableNameCamelCase}, error) {
+	var (
+		result entity.{TplTableNameCamelCase}
+	)
+	err := dao.{TplTableNameCamelCase}.Ctx(ctx).WherePri(in.Id).Scan(&result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// PageList 分页列表
+func (s *s{TplTableNameCamelCase}) PageList(ctx context.Context, in *model.{TplTableNameCamelCase}ListIn) (list []*entity.{TplTableNameCamelCase}, total int, err error) {
+	db := dao.{TplTableNameCamelCase}.Ctx(ctx).Safe(false)
+	
+	{TplPageListSearch}
+
+	err = in.ScanAndCount(db, &list, &total, false)
+	if err != nil {
+		return nil, 0, err
+	}
+	return list, total, nil
+}
+
+`
+
+const TemplateGenModelIndexContent = `
+package model
+
+import (
+	"{TplBaseModelImportPrefix}"
+	{TplPackageImports}
+)
+
+type Create{TplTableNameCamelCase}In struct {
+	{TplColumnCreate}
+}
+
+type {TplTableNameCamelCase}IdIn struct {
+	Id int64 ` + "`" + `json:"id"` + "`" + `
+}
+
+type Edit{TplTableNameCamelCase}In struct {
+	{TplTableNameCamelCase}IdIn
+	Create{TplTableNameCamelCase}In
+}
+
+type {TplTableNameCamelCase}ListIn struct {
+	base_model.PageIn
+}
+
+`
